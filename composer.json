@@ -1,11 +1,22 @@
 {
   "name": "algobox/bytescale-laravel",
   "description": "An open source package as a PHP sdk for the bytescale cloud storage.",
+  "keywords": [
+    "files",
+    "bytescale",
+    "laravel",
+    "media"
+  ],
   "type": "library",
   "license": "MIT",
   "autoload": {
     "psr-4": {
       "AlgoBox\\Bytescale\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "AlgoBox\\Bytescale\\Tests\\": "tests/"
     }
   },
   "authors": [
@@ -20,6 +31,10 @@
     "illuminate/support": "^11.36"
   },
   "require-dev": {
+    "laravel/framework": "^11.36",
     "phpunit/phpunit": "^11.5"
+  },
+  "config": {
+    "sort-packages": true
   }
 }
