@@ -1,10 +1,12 @@
 {
-  "name": "algobox/bytescale-laravel",
-  "description": "An open source package as a PHP sdk for the bytescale cloud storage.",
+  "name": "usmanzahid/bytescale-php",
+  "description": "An open source php package for bytescale cloud storage and files processing.",
   "keywords": [
     "files",
+    "cloud",
+    "storage",
     "bytescale",
-    "laravel",
+    "php",
     "media"
   ],
   "type": "library",
@@ -28,13 +30,10 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "illuminate/support": "^11.36"
+    "php": "^8.2",
+    "ext-curl": "*"
   },
   "require-dev": {
-    "laravel/framework": "^11.36",
-    "phpunit/phpunit": "^11.5"
-  },
-  "config": {
-    "sort-packages": true
+    "phpunit/phpunit": "^12"
   }
 }
