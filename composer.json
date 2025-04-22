@@ -13,12 +13,12 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "AlgoBox\\Bytescale\\": "src/"
+      "UsmanZahid\\Bytescale\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "AlgoBox\\Bytescale\\Tests\\": "tests/"
+      "UsmanZahid\\Bytescale\\Tests\\": "tests/"
     }
   },
   "authors": [

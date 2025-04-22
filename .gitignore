@@ -1,2 +1,11 @@
+# PhpStorm
+.idea/
+
+# Composer
 /vendor/
-/.idea
+
+# Logs
+*.log
+
+# Others
+*.tmp
