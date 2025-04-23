@@ -7,11 +7,8 @@ use AlgoBox\Bytescale\Exceptions\GeneralBytescaleException;
 class BytescaleClient {
     private string $bytescaleBaseUrl = "https://api.bytescale.com";
     private string $bytescaleUploadPath = "/v2/accounts/{accountId}/uploads/binary";
-    private string $bytescaleProcessingUrl = "https://upcdn.io";
 
     public function __construct(protected string $apiKey) {
-        /// Add the api key to the Upload path.
-        /// Todo: Needs better way of handling.
         str_replace(
             '{accountId}',
             $apiKey,
