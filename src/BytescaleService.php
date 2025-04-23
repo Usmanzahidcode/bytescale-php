@@ -2,13 +2,13 @@
 
 namespace UsmanZahid\Bytescale;
 
-use UsmanZahid\Bytescale\Client\BytescaleClient;
+use UsmanZahid\Bytescale\Client\BytescaleUploadClient;
 
 /**
  * Will have static methods to get the actual client and make requests.
  */
 class BytescaleService {
-    public static function image(): BytescaleClient {
-        return new BytescaleClient();
+    public static function upload(): BytescaleUploadClient {
+        return new BytescaleUploadClient();
     }
 }
