@@ -3,17 +3,26 @@
 namespace UsmanZahid\Bytescale\Client;
 
 class BytescaleUploadClient {
+    /// API access point information
     private string $bytescaleBaseUrl = "https://api.bytescale.com";
     private string $bytescaleUploadPath = "/v2/accounts/{accountId}/uploads/binary";
+
+    // Auth information
     private string $accountId;
     private string $apiKey;
 
-    private string $folderPath;
+    /// File information
     private string $fileName;
-    private string $originalFileName;
     private string $fileNameFallback;
+    private string $originalFileName;
     private bool $fileNameVariables;
+    private string $folderPath;
     private string $tag;
+
+    /// Headers
+    private string $contentType;
+    private int $contentLength;
+    private array $metadata;
 
     public function __construct(
         string $accountId, $apiKey
@@ -56,6 +65,21 @@ class BytescaleUploadClient {
 
     public function withTag(string $tag): BytescaleUploadClient {
         $this->tag = $tag;
+        return $this;
+    }
+
+    public function withMetadata(array $metadata): BytescaleUploadClient {
+        $this->metadata = $metadata;
+        return $this;
+    }
+
+    public function withContentType(string $contentType): BytescaleUploadClient {
+        $this->contentType = $contentType;
+        return $this;
+    }
+
+    public function withContentLength(int $contentLength): BytescaleUploadClient {
+        $this->contentLength = $contentLength;
         return $this;
     }
 
