@@ -8,7 +8,17 @@ use UsmanZahid\Bytescale\Client\BytescaleUploadClient;
  * Will have static methods to get the actual client and make requests.
  */
 class BytescaleService {
-    public static function upload(): BytescaleUploadClient {
-        return new BytescaleUploadClient();
+    /**
+     * Get a new UploadClient instance for uploading files.
+     *
+     * @param string $accountId
+     * @param string $apiKey
+     * @return BytescaleUploadClient
+     */
+    public static function upload(
+        string $accountId,
+        string $apiKey,
+    ): BytescaleUploadClient {
+        return new BytescaleUploadClient($accountId, $apiKey);
     }
 }
