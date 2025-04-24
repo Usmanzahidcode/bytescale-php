@@ -2,6 +2,9 @@
 
 namespace UsmanZahid\Bytescale\Client;
 
+
+use GuzzleHttp\Client;
+
 class BytescaleUploadClient {
     /// API access point information
     private string $bytescaleBaseUrl = "https://api.bytescale.com";
@@ -80,6 +83,19 @@ class BytescaleUploadClient {
 
     public function withContentLength(int $contentLength): BytescaleUploadClient {
         $this->contentLength = $contentLength;
+        return $this;
+    }
+
+    /// Make the request
+    public function upload(): BytescaleUploadClient {
+        $client = new Client();
+
+        $client->post($this->bytescaleBaseUrl . $this->bytescaleUploadPath,
+            [
+
+            ]
+        );
+
         return $this;
     }
 
