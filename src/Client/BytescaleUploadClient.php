@@ -92,7 +92,16 @@ class BytescaleUploadClient {
 
         $client->post($this->bytescaleBaseUrl . $this->bytescaleUploadPath,
             [
-
+                'body' => json_encode([
+                    'fileName' => $this->fileName,
+                    'fileNameFallback' => $this->fileNameFallback,
+                    'originalFileName' => $this->originalFileName,
+                    'fileNameVariables' => $this->fileNameVariables,
+                    'tags' => $this->tag,
+                    'contentType' => $this->contentType,
+                    'contentLength' => $this->contentLength,
+                    'metadata' => $this->metadata,
+                ])
             ]
         );
 
