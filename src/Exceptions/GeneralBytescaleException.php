@@ -1,6 +1,6 @@
 <?php
 
-namespace AlgoBox\Bytescale\Exceptions;
+namespace UsmanZahid\Bytescale\Exceptions;
 
 use Exception;
 

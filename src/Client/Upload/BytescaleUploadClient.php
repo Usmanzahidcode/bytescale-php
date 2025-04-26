@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace UsmanZahid\Bytescale\Client;
+namespace UsmanZahid\Bytescale\Client\Upload;
 
 use GuzzleHttp\Client;
+use UsmanZahid\Bytescale\Exceptions\GeneralBytescaleException;
 
 class BytescaleUploadClient {
     private string $bytescaleBaseUrl = "https://api.bytescale.com/";
@@ -22,8 +23,11 @@ class BytescaleUploadClient {
     private ?int $contentLength = null;
 
     public function __construct(string $accountId, string $apiKey) {
+        /// Set the auth information
         $this->accountId = $accountId;
         $this->apiKey = $apiKey;
+
+        /// Update the upload path with the accountId
         $this->bytescaleUploadPath = str_replace('{accountId}', $accountId, $this->bytescaleUploadPath);
     }
 
@@ -93,15 +97,43 @@ class BytescaleUploadClient {
 
         $headers = [
             'Authorization' => "Bearer {$this->apiKey}",
-            'Content-Type' => $this->contentType ?? mime_content_type($this->filePath),
+            'Content-Type' => $this->contentType ?? $this->guessMimeType($this->filePath),
         ];
 
-        $response = $client->post($this->bytescaleUploadPath, [
-            'headers' => $headers,
-            'query' => $queryParams,
-            'body' => fopen($this->filePath, 'r'),
-        ]);
+        try {
+            $response = $client->post($this->bytescaleUploadPath, [
+                'headers' => $headers,
+                'query' => $queryParams,
+                'body' => fopen($this->filePath, 'r'),
+            ]);
+
+        } catch (\Throwable $exception) { // TODO: Better exception handling
+            throw new GeneralBytescaleException($exception->getMessage(), $exception->getCode(), $exception);
+        }
+
 
         return json_decode($response->getBody()->getContents(), true);
     }
+
+    // TODO: Move to Helper for easier access.
+    private function guessMimeType(string $filePath): string {
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'pdf' => 'application/pdf',
+            'zip' => 'application/zip',
+            'txt' => 'text/plain',
+            'json' => 'application/json',
+            'csv' => 'text/csv',
+            'mp4' => 'video/mp4',
+            'mp3' => 'audio/mpeg',
+            default => 'application/octet-stream',
+        };
+    }
+
+
 }

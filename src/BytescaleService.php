@@ -2,7 +2,7 @@
 
 namespace UsmanZahid\Bytescale;
 
-use UsmanZahid\Bytescale\Client\BytescaleUploadClient;
+use UsmanZahid\Bytescale\Client\Upload\BytescaleUploadClient;
 
 /**
  * Will have static methods to get the actual client and make requests.
