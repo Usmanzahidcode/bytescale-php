@@ -2,113 +2,106 @@
 
 namespace UsmanZahid\Bytescale\Client;
 
-
 use GuzzleHttp\Client;
 
 class BytescaleUploadClient {
-    /// API access point information
     private string $bytescaleBaseUrl = "https://api.bytescale.com/";
     private string $bytescaleUploadPath = "v2/accounts/{accountId}/uploads/binary/";
 
-    // Auth information
     private string $accountId;
     private string $apiKey;
 
-    /// File information
-    private string $fileName;
-    private string $fileNameFallback;
-    private string $originalFileName;
-    private bool $fileNameVariables;
-    private string $folderPath;
-    private string $tag;
+    private string $filePath;
+    private ?string $fileName = null;
+    private ?string $originalFileName = null;
+    private ?string $fileNameFallback = null;
+    private ?bool $fileNameVariables = null;
+    private ?string $tag = null;
+    private ?array $metadata = null;
+    private ?string $contentType = null;
+    private ?int $contentLength = null;
 
-    /// Headers
-    private string $contentType;
-    private int $contentLength;
-    private array $metadata;
-
-    public function __construct(
-        string $accountId, $apiKey
-    ) {
+    public function __construct(string $accountId, string $apiKey) {
         $this->accountId = $accountId;
         $this->apiKey = $apiKey;
-
-        /// Add the account ID to the Upload path.
-        str_replace(
-            '{accountId}',
-            $accountId,
-            $this->bytescaleUploadPath
-        );
+        $this->bytescaleUploadPath = str_replace('{accountId}', $accountId, $this->bytescaleUploadPath);
     }
 
-    public function withFolderPath(string $path): BytescaleUploadClient {
-        $this->folderPath = $path;
+    public function withFilePath(string $path): self {
+        $this->filePath = $path;
         return $this;
     }
 
-    public function withFileName(string $fileName): BytescaleUploadClient {
-        $this->fileName = $fileName;
+    public function withFileName(string $name): self {
+        $this->fileName = $name;
         return $this;
     }
 
-    public function withOriginalFileName(string $originalFileName): BytescaleUploadClient {
-        $this->originalFileName = $originalFileName;
+    public function withOriginalFileName(string $original): self {
+        $this->originalFileName = $original;
         return $this;
     }
 
-    public function withFileNameFallback(string $fileNameFallback): BytescaleUploadClient {
-        $this->fileNameFallback = $fileNameFallback;
+    public function withFileNameFallback(string $fallback): self {
+        $this->fileNameFallback = $fallback;
         return $this;
     }
 
-    public function withFileNameVariables(bool $fileNameVariables): BytescaleUploadClient {
-        $this->fileNameVariables = $fileNameVariables;
+    public function withFileNameVariables(bool $variables): self {
+        $this->fileNameVariables = $variables;
         return $this;
     }
 
-    public function withTag(string $tag): BytescaleUploadClient {
+    public function withTag(string $tag): self {
         $this->tag = $tag;
         return $this;
     }
 
-    public function withMetadata(array $metadata): BytescaleUploadClient {
+    public function withMetadata(array $metadata): self {
         $this->metadata = $metadata;
         return $this;
     }
 
-    public function withContentType(string $contentType): BytescaleUploadClient {
+    public function withContentType(string $contentType): self {
         $this->contentType = $contentType;
         return $this;
     }
 
-    public function withContentLength(int $contentLength): BytescaleUploadClient {
-        $this->contentLength = $contentLength;
+    public function withContentLength(int $length): self {
+        $this->contentLength = $length;
         return $this;
     }
 
-    /// Make the request
-    public function upload(): BytescaleUploadClient {
+    public function upload(): array {
+        if (!isset($this->filePath) || !file_exists($this->filePath)) {
+            throw new \InvalidArgumentException("Invalid file path provided.");
+        }
+
         $client = new Client([
-            'base_url' => $this->bytescaleBaseUrl,
+            'base_uri' => $this->bytescaleBaseUrl,
+            'timeout' => 15,
         ]);
 
-        $client->post(
-            $this->bytescaleUploadPath,
-            [
-                'body' => json_encode([
-                    'fileName' => $this->fileName,
-                    'fileNameFallback' => $this->fileNameFallback,
-                    'originalFileName' => $this->originalFileName,
-                    'fileNameVariables' => $this->fileNameVariables,
-                    'tags' => $this->tag,
-                    'contentType' => $this->contentType,
-                    'contentLength' => $this->contentLength,
-                    'metadata' => $this->metadata,
-                ])
-            ]
-        );
+        $queryParams = [];
 
-        return $this;
+        if ($this->fileName!==null) $queryParams['fileName'] = $this->fileName;
+        if ($this->originalFileName!==null) $queryParams['originalFileName'] = $this->originalFileName;
+        if ($this->fileNameFallback!==null) $queryParams['fileNameFallback'] = $this->fileNameFallback;
+        if ($this->fileNameVariables!==null) $queryParams['fileNameVariables'] = $this->fileNameVariables ? 'true':'false';
+        if ($this->tag!==null) $queryParams['tag'] = $this->tag;
+        if ($this->metadata!==null) $queryParams['metadata'] = json_encode($this->metadata);
+
+        $headers = [
+            'Authorization' => "Bearer {$this->apiKey}",
+            'Content-Type' => $this->contentType ?? mime_content_type($this->filePath),
+        ];
+
+        $response = $client->post($this->bytescaleUploadPath, [
+            'headers' => $headers,
+            'query' => $queryParams,
+            'body' => fopen($this->filePath, 'r'),
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
     }
-
 }
