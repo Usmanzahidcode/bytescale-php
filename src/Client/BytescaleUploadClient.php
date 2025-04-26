@@ -7,8 +7,8 @@ use GuzzleHttp\Client;
 
 class BytescaleUploadClient {
     /// API access point information
-    private string $bytescaleBaseUrl = "https://api.bytescale.com";
-    private string $bytescaleUploadPath = "/v2/accounts/{accountId}/uploads/binary";
+    private string $bytescaleBaseUrl = "https://api.bytescale.com/";
+    private string $bytescaleUploadPath = "v2/accounts/{accountId}/uploads/binary/";
 
     // Auth information
     private string $accountId;
@@ -88,9 +88,12 @@ class BytescaleUploadClient {
 
     /// Make the request
     public function upload(): BytescaleUploadClient {
-        $client = new Client();
+        $client = new Client([
+            'base_url' => $this->bytescaleBaseUrl,
+        ]);
 
-        $client->post($this->bytescaleBaseUrl . $this->bytescaleUploadPath,
+        $client->post(
+            $this->bytescaleUploadPath,
             [
                 'body' => json_encode([
                     'fileName' => $this->fileName,
