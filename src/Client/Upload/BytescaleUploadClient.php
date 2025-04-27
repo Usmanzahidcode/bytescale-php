@@ -119,7 +119,7 @@ class BytescaleUploadClient {
     private function guessMimeType(string $filePath): string {
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
-        return match ($extension) {
+        return match ($extension) { 
             'jpg', 'jpeg' => 'image/jpeg',
             'png' => 'image/png',
             'gif' => 'image/gif',
