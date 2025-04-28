@@ -3,6 +3,7 @@
 namespace UsmanZahid\Bytescale\Client\Upload;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use UsmanZahid\Bytescale\Exceptions\GeneralBytescaleException;
 
 class BytescaleUploadClient {
@@ -106,20 +107,19 @@ class BytescaleUploadClient {
                 'query' => $queryParams,
                 'body' => fopen($this->filePath, 'r'),
             ]);
-
-        } catch (\Throwable $exception) { // TODO: Better exception handling
+        } catch (GuzzleException $exception) {
             throw new GeneralBytescaleException($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Throwable $exception) {
+            throw new GeneralBytescaleException();
         }
-
 
         return json_decode($response->getBody()->getContents(), true);
     }
 
-    // TODO: Move to Helper for easier access.
     private function guessMimeType(string $filePath): string {
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
-        return match ($extension) { 
+        return match ($extension) {
             'jpg', 'jpeg' => 'image/jpeg',
             'png' => 'image/png',
             'gif' => 'image/gif',
