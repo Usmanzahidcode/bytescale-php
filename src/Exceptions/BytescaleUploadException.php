@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace UsmanZahid\Bytescale\Exceptions;
 
 use Exception;
 
-class GeneralBytescaleException extends Exception {
+class BytescaleUploadException extends Exception {
     public function __construct(
-        string     $message = "A general Bytescale error has occurred.",
+        string     $message = "An error occurred during Bytescale upload.",
         int        $code = 0,
         ?Exception $previous = null
     ) {

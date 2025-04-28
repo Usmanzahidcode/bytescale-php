@@ -4,15 +4,23 @@ namespace UsmanZahid\Bytescale\Client\Upload;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use UsmanZahid\Bytescale\Exceptions\BytescaleUploadException;
 use UsmanZahid\Bytescale\Exceptions\GeneralBytescaleException;
 
 class BytescaleUploadClient {
+    /// Api end points
     private string $bytescaleBaseUrl = "https://api.bytescale.com/";
     private string $bytescaleUploadPath = "v2/accounts/{accountId}/uploads/binary/";
 
+    // Auth
     private string $accountId;
     private string $apiKey;
 
+    /// Source file
+    private ?string $sourceFilePath = null;
+    private ?string $sourceFileContent = null;
+
+    /// Request parameters
     private string $filePath;
     private ?string $fileName = null;
     private ?string $originalFileName = null;
@@ -32,8 +40,19 @@ class BytescaleUploadClient {
         $this->bytescaleUploadPath = str_replace('{accountId}', $accountId, $this->bytescaleUploadPath);
     }
 
+
+    public function withSourceFilePath(string $filePath): BytescaleUploadClient {
+        $this->sourceFilePath = $filePath;
+        return $this;
+    }
+
+    public function withSourceFileContent(string $sourceFileContent): BytescaleUploadClient {
+        $this->sourceFileContent = $sourceFileContent;
+        return $this;
+    }
+
     public function withFilePath(string $path): self {
-        $this->filePath = $path;
+        $this->sourceFilePath = $path;
         return $this;
     }
 
@@ -77,16 +96,30 @@ class BytescaleUploadClient {
         return $this;
     }
 
+    /**
+     * Send the upload request with the provided options.
+     *
+     * @throws BytescaleUploadException
+     * @throws GeneralBytescaleException
+     */
     public function upload(): array {
-        if (!isset($this->filePath) || !file_exists($this->filePath)) {
-            throw new \InvalidArgumentException("Invalid file path provided.");
+        /// Check if either file path or file content is provided
+        if (empty($this->fileContent) && (empty($this->filePath) || !file_exists($this->filePath))) {
+            throw new \InvalidArgumentException("You must provide either a valid file path or file content.");
         }
 
+        /// If the file path is provided, read the content of the file
+        if (!empty($this->filePath) && file_exists($this->filePath)) {
+            $this->sourceFileContent = file_get_contents($this->filePath);
+        }
+
+        /// Set up the client
         $client = new Client([
             'base_uri' => $this->bytescaleBaseUrl,
             'timeout' => 15,
         ]);
 
+        /// Add the query parameters
         $queryParams = [];
 
         if ($this->fileName!==null) $queryParams['fileName'] = $this->fileName;
@@ -96,23 +129,26 @@ class BytescaleUploadClient {
         if ($this->tag!==null) $queryParams['tag'] = $this->tag;
         if ($this->metadata!==null) $queryParams['metadata'] = json_encode($this->metadata);
 
+        /// Add headers
         $headers = [
             'Authorization' => "Bearer {$this->apiKey}",
-            'Content-Type' => $this->contentType ?? $this->guessMimeType($this->filePath),
+            'Content-Type' => $this->contentType ?? $this->guessMimeType($this->sourceFilePath),
         ];
 
+        /// Make the request
         try {
             $response = $client->post($this->bytescaleUploadPath, [
                 'headers' => $headers,
                 'query' => $queryParams,
-                'body' => fopen($this->filePath, 'r'),
+                'body' => fopen($this->sourceFilePath, 'r'),
             ]);
         } catch (GuzzleException $exception) {
-            throw new GeneralBytescaleException($exception->getMessage(), $exception->getCode(), $exception);
+            throw new BytescaleUploadException($exception->getMessage(), $exception->getCode(), $exception);
         } catch (\Throwable $exception) {
-            throw new GeneralBytescaleException();
+            throw new GeneralBytescaleException(previous: $exception);
         }
 
+        /// Return the response
         return json_decode($response->getBody()->getContents(), true);
     }
 
