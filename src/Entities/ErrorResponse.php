@@ -1,6 +1,6 @@
 <?php
 
-namespace UsmanZahid\Bytescale\Client;
+namespace UsmanZahid\Bytescale\Entities;
 
 class ErrorResponse {
     public string $code;
