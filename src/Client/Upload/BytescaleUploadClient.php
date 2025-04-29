@@ -4,6 +4,7 @@ namespace UsmanZahid\Bytescale\Client\Upload;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use UsmanZahid\Bytescale\Entities\BasicUploadResponse;
 use UsmanZahid\Bytescale\Exceptions\BytescaleUploadException;
 use UsmanZahid\Bytescale\Exceptions\GeneralBytescaleException;
 
@@ -21,7 +22,7 @@ class BytescaleUploadClient {
     private ?string $sourceFileContent = null;
 
     /// Request parameters
-    private string $filePath;
+    private ?string $filePath = null;
     private ?string $fileName = null;
     private ?string $originalFileName = null;
     private ?string $fileNameFallback = null;
@@ -37,7 +38,7 @@ class BytescaleUploadClient {
         $this->apiKey = $apiKey;
 
         /// Update the upload path with the accountId
-        $this->bytescaleUploadPath = str_replace('{accountId}', $accountId, $this->bytescaleUploadPath);
+        $this->bytescaleUploadPath = str_replace('{accountId}', $this->accountId, $this->bytescaleUploadPath);
     }
 
 
@@ -102,15 +103,18 @@ class BytescaleUploadClient {
      * @throws BytescaleUploadException
      * @throws GeneralBytescaleException
      */
-    public function upload(): array {
+    public function upload(): BasicUploadResponse {
+        var_dump($this->sourceFilePath);
+        var_dump($this->sourceFileContent);
+
         /// Check if either file path or file content is provided
-        if (empty($this->fileContent) && (empty($this->filePath) || !file_exists($this->filePath))) {
+        if (empty($this->fileContent) && (empty($this->sourceFilePath) || !file_exists($this->sourceFilePath))) {
             throw new \InvalidArgumentException("You must provide either a valid file path or file content.");
         }
 
         /// If the file path is provided, read the content of the file
-        if (!empty($this->filePath) && file_exists($this->filePath)) {
-            $this->sourceFileContent = file_get_contents($this->filePath);
+        if (!empty($this->sourceFilePath) && file_exists($this->sourceFilePath)) {
+            $this->sourceFileContent = file_get_contents($this->sourceFilePath);
         }
 
         /// Set up the client
@@ -123,6 +127,7 @@ class BytescaleUploadClient {
         $queryParams = [];
 
         if ($this->fileName!==null) $queryParams['fileName'] = $this->fileName;
+        if ($this->fileName!==null) $queryParams['filePath'] = $this->filePath;
         if ($this->originalFileName!==null) $queryParams['originalFileName'] = $this->originalFileName;
         if ($this->fileNameFallback!==null) $queryParams['fileNameFallback'] = $this->fileNameFallback;
         if ($this->fileNameVariables!==null) $queryParams['fileNameVariables'] = $this->fileNameVariables ? 'true':'false';
@@ -133,6 +138,7 @@ class BytescaleUploadClient {
         $headers = [
             'Authorization' => "Bearer {$this->apiKey}",
             'Content-Type' => $this->contentType ?? $this->guessMimeType($this->sourceFilePath),
+            'Content-Length' => $this->contentLength,
         ];
 
         /// Make the request
@@ -148,8 +154,21 @@ class BytescaleUploadClient {
             throw new GeneralBytescaleException(previous: $exception);
         }
 
-        /// Return the response
-        return json_decode($response->getBody()->getContents(), true);
+        // Extract the response body and decode JSON if necessary
+        $responseContents = $response->getBody()->getContents();
+        $responseData = json_decode($responseContents, true);
+
+        // If the response is valid and contains expected data
+        if (!isset($responseData['accountId'], $responseData['etag'], $responseData['filePath'], $responseData['fileUrl'])) {
+            throw new GeneralBytescaleException("Invalid response from the Bytescale API.");
+        }
+
+        return new BasicUploadResponse(
+            $responseData['accountId'],
+            $responseData['etag'],
+            $responseData['filePath'],
+            $responseData['fileUrl']
+        );
     }
 
     private function guessMimeType(string $filePath): string {
