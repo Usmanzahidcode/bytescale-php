@@ -19,6 +19,7 @@ class BytescaleService {
         string $accountId,
         string $apiKey,
     ): BytescaleUploadClient {
+        // We should utilize the dot env for the testing purposes in this package, makes it easier.
         return new BytescaleUploadClient($accountId, $apiKey);
     }
 }
